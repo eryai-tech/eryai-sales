@@ -46,15 +46,71 @@ export async function middleware(request) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
+  const { pathname } = request.nextUrl;
+
+  // Publika routes som inte kräver auth
+  const publicRoutes = ['/login'];
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
+  // MFA routes
+  const isMfaRoute = pathname.startsWith('/mfa');
 
   // Om ej inloggad och försöker nå skyddad route → redirect till login
-  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
+  if (!user && !isPublicRoute && !isMfaRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Om inloggad och på login-sidan → redirect till leads
-  if (user && request.nextUrl.pathname === '/login') {
+  if (user && pathname === '/login') {
     return NextResponse.redirect(new URL('/leads', request.url));
+  }
+
+  // ✨ NYTT: MFA-checks för skyddade routes
+  if (user && pathname.startsWith('/leads')) {
+    try {
+      // Hämta MFA factors
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      
+      // Om MFA är aktiverat (har factors)
+      if (factors?.totp && factors.totp.length > 0) {
+        // Hämta session för att kolla AAL
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Om MFA är aktiverat men inte verifierat (AAL !== aal2)
+        if (session?.aal !== 'aal2') {
+          return NextResponse.redirect(new URL('/mfa/verify', request.url));
+        }
+      }
+      // Om användaren inte har MFA setup alls kan du välja att:
+      // 1. Tvinga MFA-setup (strikt policy) - uncommenta nedan
+      // 2. Låta dem komma åt dashboard men visa varning
+      
+      // Strikt policy (tvinga MFA för alla):
+      // else {
+      //   return NextResponse.redirect(new URL('/mfa/setup', request.url));
+      // }
+      
+    } catch (err) {
+      console.error('Middleware MFA check error:', err);
+      // Vid fel, låt användaren fortsätta men logga felet
+    }
+  }
+
+  // Om användaren är på MFA-sidor men inte är inloggad
+  if (!user && isMfaRoute) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Om användaren är på /mfa/verify men redan är aal2-verifierad
+  if (user && pathname === '/mfa/verify') {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.aal === 'aal2') {
+        return NextResponse.redirect(new URL('/leads', request.url));
+      }
+    } catch (err) {
+      console.error('MFA verify check error:', err);
+    }
   }
 
   return response;
