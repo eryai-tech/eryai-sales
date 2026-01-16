@@ -70,7 +70,7 @@ export default function MFASetupPage() {
       if (verifyError) throw verifyError
 
       // Success! Redirect to dashboard
-      router.push('/dashboard')
+      router.push('/leads')
     } catch (err) {
       setError(err.message || 'Felaktig kod, försök igen')
       setVerifyCode('')
