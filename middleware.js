@@ -65,41 +65,34 @@ export async function middleware(request) {
     return NextResponse.redirect(new URL('/leads', request.url));
   }
 
-  // ✨ MFA-checks för skyddade routes
-  if (user && pathname.startsWith('/leads')) {
-    try {
-      // Hämta MFA factors
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      
-      // Om MFA är aktiverat (har factors)
-      if (factors?.totp && factors.totp.length > 0) {
-        // Hämta session för att kolla AAL
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        // Om MFA är aktiverat men inte verifierat (AAL !== aal2)
-        if (session?.aal !== 'aal2') {
-          return NextResponse.redirect(new URL('/mfa/verify', request.url));
-        }
-      }
-    } catch (err) {
-      console.error('Middleware MFA check error:', err);
-    }
-  }
-
   // Om användaren är på MFA-sidor men inte är inloggad
   if (!user && isMfaRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Om användaren är på /mfa/verify men redan är aal2-verifierad
-  if (user && pathname === '/mfa/verify') {
+  // ✨ MFA-checks för skyddade routes (endast /leads)
+  if (user && pathname.startsWith('/leads')) {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.aal === 'aal2') {
-        return NextResponse.redirect(new URL('/leads', request.url));
+      // Hämta MFA factors
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      
+      // Kolla om användaren har MFA uppsatt
+      const hasMFA = factors?.totp && factors.totp.length > 0;
+      
+      if (hasMFA) {
+        // Använd getAuthenticatorAssuranceLevel för att kolla AAL
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        
+        // Om currentLevel inte är aal2, redirecta till verify
+        if (aalData?.currentLevel !== 'aal2') {
+          return NextResponse.redirect(new URL('/mfa/verify', request.url));
+        }
       }
+      // Om ingen MFA uppsatt, låt användaren passera till /leads
+      // (de kommer behöva sätta upp MFA vid nästa login)
+      
     } catch (err) {
-      console.error('MFA verify check error:', err);
+      console.error('Middleware MFA check error:', err);
     }
   }
 
