@@ -1,6 +1,5 @@
 // app/login/page.js
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
@@ -34,8 +33,8 @@ export default function LoginPage() {
         // Användaren har MFA aktiverat, redirecta till verify
         router.push('/mfa/verify');
       } else {
-        // Ingen MFA, redirecta direkt till dashboard
-        router.push('/leads');
+        // ✅ FIX: Ingen MFA uppsatt, redirecta till setup (INTE /leads)
+        router.push('/mfa/setup');
       }
       
       router.refresh();
