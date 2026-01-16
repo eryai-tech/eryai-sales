@@ -53,7 +53,7 @@ export default function MFAVerifyPage() {
 
       if (verifyError) throw verifyError
 
-      router.push('/leads');
+      router.push('/leads')
     } catch (err) {
       setError('Felaktig kod, försök igen')
       setCode('')
@@ -68,12 +68,12 @@ export default function MFAVerifyPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-eryai-50 to-eryai-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-white p-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-eryai-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-eryai-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
@@ -99,7 +99,7 @@ export default function MFAVerifyPage() {
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
               required
-              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-eryai-500 focus:border-transparent transition text-center text-3xl tracking-widest font-mono"
+              className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition text-center text-3xl tracking-widest font-mono"
               placeholder="000000"
               autoFocus
             />
@@ -108,7 +108,7 @@ export default function MFAVerifyPage() {
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="w-full bg-eryai-600 text-white py-3 rounded-lg font-medium hover:bg-eryai-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Verifierar...' : 'Verifiera'}
           </button>
