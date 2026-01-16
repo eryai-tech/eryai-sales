@@ -27,7 +27,7 @@ export default function LoginPage() {
 
       if (signInError) throw signInError;
 
-      // ✨ NYTT: Kolla MFA-status efter successful login
+      // ✨ Kolla MFA-status efter successful login
       const { data: factors } = await supabase.auth.mfa.listFactors();
       
       if (factors?.totp && factors.totp.length > 0) {
@@ -43,7 +43,7 @@ export default function LoginPage() {
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || 'Inloggning misslyckades');
-      setLoading(false); // Visa error bara om login misslyckas
+      setLoading(false);
     }
   };
 
